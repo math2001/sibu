@@ -16,13 +16,22 @@ type Sibu struct {
 	pcount int
 }
 
-// Unconditionnaly write string to the request.
+// Write a clause to the request, with an automatic space if there is some text
+// before.
 // It is good practice to make one call per clause
 func (s *Sibu) Write(clause string) {
+	if s.b.Len() != 0 {
+		s.b.WriteRune(' ')
+	}
 	s.b.WriteString(clause)
 }
 
-// Add adds an argument value to the builder. If do is false, does nothing
+// BareWrite exactly writes s to the request. No space is added, so be careful
+func (s *Sibu) BareWrite(str string) {
+	s.b.WriteString(str)
+}
+
+// Add adds an argument value to the builder.
 func (s *Sibu) Add(clause string, value interface{}) {
 	s.b.WriteString(clause)
 	s.args = append(s.args, value)
