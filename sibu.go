@@ -23,9 +23,9 @@ func (e ErrDismatchingParam) Error() string {
 // request
 type Params []interface{}
 
-// Clauser is sub-part of the request
-type Clauser interface {
-	GetClause() (string, Params)
+// OpClauser is sub-part of the request
+type OpClauser interface {
+	GetOpClause() (string, Params)
 }
 
 // Sibu is simplistic sql request buidler
@@ -80,8 +80,9 @@ func (s *Sibu) Query() (string, []interface{}, error) {
 	return b.String(), s.args, nil
 }
 
-// Extend extends the requests and arguments from a Maker
-func (s *Sibu) Extend(m Clauser) {
-	req, args := m.GetClause()
+// Extend extends the requests and arguments from an OpClauser
+func (s *Sibu) Extend(clause string, m OpClauser) {
+	s.Add(clause)
+	req, args := m.GetOpClause()
 	s.Add(req, args...)
 }

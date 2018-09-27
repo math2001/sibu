@@ -52,14 +52,14 @@ func testFromUserInput(t *testing.T, from string, contains string) *Sibu {
 	b := &Sibu{}
 	b.Add("SELECT p.title, p.content FROM posts p JOIN user u On p.userid=u.id")
 
-	where := Where{}
+	where := OpClause{}
 	if from != "" {
-		where.And("user.name={{ p }}", from)
+		where.Add("AND", "user.name={{ p }}", from)
 	}
 	if contains != "" {
-		where.And("p.content LIKE {{ p }}", contains)
+		where.Add("AND", "p.content LIKE {{ p }}", contains)
 	}
-	b.Extend(&where)
+	b.Extend("WHERE", &where)
 	return b
 }
 
