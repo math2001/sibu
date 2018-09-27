@@ -27,3 +27,21 @@ will report it, not sibu.
 > Use the power of strong types
 
 `interface{}` should be avoided as much as possible. Types are great hints.
+
+## Usage
+
+```go
+var args = []interface{}{limit, }
+var q strings.Builder
+q.Write("SELECT p.title, p.content, u.username, u.avatar")
+q.Write("FROM posts AS p")
+q.Write("JOIN users AS u")
+q.Write("ON p.userid=u.id")
+
+if userid != -1 {
+    q.Add("WHERE userid={{ p }}", userid)
+}
+if limit != -1 {
+    q.Add("LIMIT {{ p }}", limit)
+}
+```

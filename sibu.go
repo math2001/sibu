@@ -1,38 +1,49 @@
 package sibu
 
-const (
-	// OpEqual represents the equal operator
-	OpEqual = iota
+import (
+	"bytes"
+	"fmt"
+	"html/template"
+	"strings"
+
+	"github.com/pkg/errors"
 )
 
-// TableName represents a table name, plus it's alias. For example, "users",
-// "users AS u", "users u" are all valid table names
-type TableName string
-
-// Condition represents a condition, typically used in a Where clause
-type Condition struct {
-	// Operand typically represents the name of the column
-	Operand string
-	// A constant used to represent the operator. See constants (they start
-	// with Op)
-	Operator int
-	// The value to which it is compared
-	Value interface{}
+// Sibu is simplistic sql request buidler
+type Sibu struct {
+	args   []interface{}
+	b      strings.Builder
+	pcount int
 }
 
-// Select is used to build a SELECT request
-type Select struct {
-	// Fields represent the fields that are going to be selected, comma
-	// seperated
-	Fields string
+// Unconditionnaly write string to the request.
+// It is good practice to make one call per clause
+func (s *Sibu) Write(clause string) {
+	s.b.WriteString(clause)
+}
 
-	// From creates the From clause. It can contain the alias.
-	// "users", "users AS u" and "users u" are all valid values
-	From TableName
+// Add adds an argument value to the builder. If do is false, does nothing
+func (s *Sibu) Add(clause string, value interface{}) {
+	s.b.WriteString(clause)
+	s.args = append(s.args, value)
+}
 
-	// Where represents a condition
-	Where Condition
+func (s *Sibu) p() string {
+	s.pcount++
+	return fmt.Sprintf("$%d", s.pcount)
+}
 
-	// InnerJoin represents the table name to join to. Same rules apply
-	InnerJoin TableName
+// Parameterize returns the sql query with the need parameter
+func (s *Sibu) Parameterize() (string, []interface{}, error) {
+	t := template.New("parameterizer")
+	t.Funcs(map[string]interface{}{
+		"p": s.p,
+	})
+	req := s.b.String()
+	if _, err := t.Parse(req); err != nil {
+		return "", nil, errors.Wrapf(err, "failed to parse request %q", req)
+	}
+	var b bytes.Buffer
+	t.Execute(&b, nil)
+	return b.String(), s.args, nil
 }
