@@ -18,9 +18,8 @@ type Sibu struct {
 
 // Write a clause to the request, with an automatic space if there is some text
 // before.
-// It is good practice to make one call per clause
 func (s *Sibu) Write(clause string) {
-	if s.b.Len() != 0 {
+	if s.b.Len() > 0 {
 		s.b.WriteRune(' ')
 	}
 	s.b.WriteString(clause)
@@ -33,7 +32,7 @@ func (s *Sibu) BareWrite(str string) {
 
 // Add adds an argument value to the builder.
 func (s *Sibu) Add(clause string, value interface{}) {
-	s.b.WriteString(clause)
+	s.Write(clause)
 	s.args = append(s.args, value)
 }
 
