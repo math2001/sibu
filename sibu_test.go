@@ -35,7 +35,7 @@ func TestNoArgs(t *testing.T) {
 	b.Write("FROM table")
 	s, a, err = b.Query()
 	if msg := resultsEqual(s, a, err, "SELECT * FROM table", nil, false); msg != "" {
-		t.Errorf("Unexpected return values #basic: %s", msg)
+		t.Errorf("Unexpected return values [basic]: %s", msg)
 	}
 	b = Sibu{}
 	b.Write("SELECT *")
@@ -44,7 +44,7 @@ func TestNoArgs(t *testing.T) {
 	b.Write("ON other.a = table.b")
 	s, a, err = b.Query()
 	if msg := resultsEqual(s, a, err, "SELECT * FROM table JOIN other ON other.a = table.b", nil, false); msg != "" {
-		t.Errorf("Unexpected return values #join: %s", msg)
+		t.Errorf("Unexpected return values [join]: %s", msg)
 	}
 }
 
@@ -60,13 +60,44 @@ func TestArgs(t *testing.T) {
 	b.Add("WHERE userid={{ p }}", 10)
 	s, a, err = b.Query()
 	if msg := resultsEqual(s, a, err, "SELECT * FROM table WHERE userid=$1", p{10}, false); msg != "" {
-		t.Errorf("Unexpected return values #single: %s", msg)
+		t.Errorf("Unexpected return values [single]: %s", msg)
 	}
 	b = Sibu{}
 	b.Write("SELECT * FROM table")
 	b.Add("WHERE userid={{ p }} AND tags LIKE {{ p }}", 10, "%go%")
 	s, a, err = b.Query()
 	if msg := resultsEqual(s, a, err, "SELECT * FROM table WHERE userid=$1 AND tags LIKE $2", p{10, "%go%"}, false); msg != "" {
-		t.Errorf("Unexpected return values #double: %s", msg)
+		t.Errorf("Unexpected return values [double]: %s", msg)
+	}
+}
+
+func TestErrors(t *testing.T) {
+	var (
+		b   Sibu
+		s   string
+		a   p
+		err error
+	)
+	b = Sibu{}
+	b.Write("SELECT * FROM table")
+	b.Add("WHERE userid={{ p }} AND extra={{ p }}", 10)
+	s, a, err = b.Query()
+	if msg := resultsEqual(s, a, err, "", nil, true); msg != "" {
+		t.Errorf("Unexpected return values [extra parameter]: %s", msg)
+	}
+	b = Sibu{}
+	b.Write("SELECT * FROM table")
+	b.Add("WHERE userid={{ p }", 10)
+	s, a, err = b.Query()
+	if msg := resultsEqual(s, a, err, "", nil, true); msg != "" {
+		t.Errorf("Unexpected return values [invalid tmpl syntax]: %s", msg)
+	}
+	b = Sibu{}
+	b.Write("SELECT * FROM table")
+	b.Add("WHERE userid={{ p }} AND error={{ .Error }}", 10)
+	s, a, err = b.Query()
+	fmt.Println(err)
+	if msg := resultsEqual(s, a, err, "", nil, true); msg != "" {
+		t.Errorf("Unexpected return values [invalid data use in tmpl]: %s", msg)
 	}
 }

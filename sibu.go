@@ -53,10 +53,11 @@ func (s *Sibu) p() string {
 
 // Query returns the sql query with the need parameter
 func (s *Sibu) Query() (string, []interface{}, error) {
-	t := template.New("parameterizer")
-	t.Funcs(map[string]interface{}{
-		"p": s.p,
-	})
+	t := template.New("parameterizer").
+		Funcs(map[string]interface{}{
+			"p": s.p,
+		}).
+		Option("missingkey=error")
 	req := s.b.String()
 	if _, err := t.Parse(req); err != nil {
 		return "", nil, errors.Wrapf(err, "failed to parse request %q", req)
