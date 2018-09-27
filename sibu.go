@@ -41,9 +41,9 @@ func (s *Sibu) BareWrite(str string) {
 }
 
 // Add adds an argument value to the builder.
-func (s *Sibu) Add(clause string, value interface{}) {
+func (s *Sibu) Add(clause string, value ...interface{}) {
 	s.Write(clause)
-	s.args = append(s.args, value)
+	s.args = append(s.args, value...)
 }
 
 func (s *Sibu) p() string {
