@@ -52,6 +52,8 @@ func (s *Sibu) Parameterize() (string, []interface{}, error) {
 		return "", nil, errors.Wrapf(err, "failed to parse request %q", req)
 	}
 	var b bytes.Buffer
-	t.Execute(&b, nil)
+	if err := t.Execute(&b, nil); err != nil {
+		return "", nil, errors.Wrapf(err, "failed to execute template")
+	}
 	return b.String(), s.args, nil
 }
