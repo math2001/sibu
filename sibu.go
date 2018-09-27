@@ -19,6 +19,15 @@ func (e ErrDismatchingParam) Error() string {
 	return fmt.Sprintf("Dismatching parameter count. Given %d, found %d", e.Given, e.Parsed)
 }
 
+// Params is list of parameters that are ultimately going to be given to the sql
+// request
+type Params []interface{}
+
+// Clauser is sub-part of the request
+type Clauser interface {
+	GetClause() (string, Params)
+}
+
 // Sibu is simplistic sql request buidler
 type Sibu struct {
 	args   []interface{}
@@ -53,6 +62,7 @@ func (s *Sibu) Query() (string, []interface{}, error) {
 			"p": s.p,
 		}).
 		Option("missingkey=error")
+
 	req := s.b.String()
 	if _, err := t.Parse(req); err != nil {
 		return "", nil, errors.Wrapf(err, "failed to parse request %q", req)
@@ -68,4 +78,10 @@ func (s *Sibu) Query() (string, []interface{}, error) {
 		}
 	}
 	return b.String(), s.args, nil
+}
+
+// Extend extends the requests and arguments from a Maker
+func (s *Sibu) Extend(m Clauser) {
+	req, args := m.GetClause()
+	s.Add(req, args...)
 }

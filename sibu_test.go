@@ -48,6 +48,21 @@ func TestNoArgs(t *testing.T) {
 	}
 }
 
+func testFromUserInput(t *testing.T, from string, contains string) *Sibu {
+	b := &Sibu{}
+	b.Add("SELECT p.title, p.content FROM posts p JOIN user u On p.userid=u.id")
+
+	where := Where{}
+	if from != "" {
+		where.And("user.name={{ p }}", from)
+	}
+	if contains != "" {
+		where.And("p.content LIKE {{ p }}", contains)
+	}
+	b.Extend(&where)
+	return b
+}
+
 func TestArgs(t *testing.T) {
 	var (
 		b   Sibu
@@ -69,6 +84,7 @@ func TestArgs(t *testing.T) {
 	if msg := resultsEqual(s, a, err, "SELECT * FROM table WHERE userid=$1 AND tags LIKE $2", p{10, "%go%"}, false); msg != "" {
 		t.Errorf("Unexpected return values [double]: %s", msg)
 	}
+
 }
 
 func TestBareAdd(t *testing.T) {
