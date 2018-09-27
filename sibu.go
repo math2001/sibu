@@ -41,8 +41,8 @@ func (s *Sibu) p() string {
 	return fmt.Sprintf("$%d", s.pcount)
 }
 
-// Parameterize returns the sql query with the need parameter
-func (s *Sibu) Parameterize() (string, []interface{}, error) {
+// Query returns the sql query with the need parameter
+func (s *Sibu) Query() (string, []interface{}, error) {
 	t := template.New("parameterizer")
 	t.Funcs(map[string]interface{}{
 		"p": s.p,
