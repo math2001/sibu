@@ -9,6 +9,16 @@ import (
 	"github.com/pkg/errors"
 )
 
+// ErrDismatchingParam is returned when the number of parsed argument differs
+// from the number of given arguments
+type ErrDismatchingParam struct {
+	Given, Parsed int
+}
+
+func (e ErrDismatchingParam) Error() string {
+	return fmt.Sprintf("Dismatching parameter count. Given %d, found %d", e.Given, e.Parsed)
+}
+
 // Sibu is simplistic sql request buidler
 type Sibu struct {
 	args   []interface{}
@@ -54,6 +64,12 @@ func (s *Sibu) Query() (string, []interface{}, error) {
 	var b bytes.Buffer
 	if err := t.Execute(&b, nil); err != nil {
 		return "", nil, errors.Wrapf(err, "failed to execute template")
+	}
+	if len(s.args) != s.pcount {
+		return "", nil, ErrDismatchingParam{
+			Given:  len(s.args),
+			Parsed: s.pcount,
+		}
 	}
 	return b.String(), s.args, nil
 }
