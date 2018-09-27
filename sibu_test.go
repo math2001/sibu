@@ -71,6 +71,22 @@ func TestArgs(t *testing.T) {
 	}
 }
 
+func TestBareWrite(t *testing.T) {
+	var (
+		b   Sibu
+		s   string
+		a   p
+		err error
+	)
+	b = Sibu{}
+	b.BareWrite("SELECT * FR")
+	b.BareWrite("OM table")
+	s, a, err = b.Query()
+	if msg := resultsEqual(s, a, err, "SELECT * FROM table", nil, false); msg != "" {
+		t.Errorf("Unexpected return values: %s", msg)
+	}
+}
+
 func TestErrors(t *testing.T) {
 	var (
 		b   Sibu
