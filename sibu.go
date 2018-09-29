@@ -26,6 +26,7 @@ type Params []interface{}
 // OpClauser is sub-part of the request
 type OpClauser interface {
 	GetOpClause() (string, Params)
+	Empty() bool
 }
 
 // Sibu is simplistic sql request buidler
@@ -80,9 +81,14 @@ func (s *Sibu) Query() (string, []interface{}, error) {
 	return b.String(), s.args, nil
 }
 
-// AddClause extends the requests and arguments from an OpClauser
-func (s *Sibu) AddClause(clause string, m OpClauser) {
-	s.Add(clause)
-	req, args := m.GetOpClause()
+// AddClause extends the requests and arguments from an OpClauser if the clause
+// isn't empty
+func (s *Sibu) AddClause(name string, clause OpClauser) bool {
+	if clause.Empty() {
+		return false
+	}
+	s.Add(name)
+	req, args := clause.GetOpClause()
 	s.Add(req, args...)
+	return true
 }

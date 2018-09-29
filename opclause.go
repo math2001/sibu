@@ -42,6 +42,11 @@ func (w *OpClause) Close() {
 	})
 }
 
+// Empty returns whether the expression is empty
+func (w OpClause) Empty() bool {
+	return len(w) == 0
+}
+
 // GetOpClause returns the formatted clause, ready to be plugged in by Extend
 func (w OpClause) GetOpClause() (string, Params) {
 	var b strings.Builder
