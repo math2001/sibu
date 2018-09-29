@@ -49,10 +49,17 @@ func (w *OpClause) GetOpClause() (string, Params) {
 	// parameter.
 	var args = make(Params, 0, len(*w))
 	for i, cond := range *w {
-		if i > 0 && i < len(*w) {
-			b.WriteString(" ")
-			b.WriteString(cond.op)
-			b.WriteString(" ")
+		// we add an operator only if there is a condition before (i > 0),
+		if i > 0 {
+			if cond.req != ")" {
+				b.WriteString(" ")
+			}
+			// the previous operator isn't an opening bracket (if it is, it
+			// wouldn't make sense to have ( AND condition ... ) for example )
+			if (*w)[i-1].req != "(" {
+				b.WriteString(cond.op)
+				b.WriteString(" ")
+			}
 		}
 		b.WriteString(cond.req)
 		args = append(args, cond.args...)

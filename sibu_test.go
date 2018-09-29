@@ -7,9 +7,8 @@ import (
 )
 
 // just a shortcut for params
-type p []interface{}
-
-func resultsEqual(s string, a p, err error, ss string, aa p, haserror bool) string {
+func resultsEqual(s string, a Params, err error, ss string, aa Params,
+	haserror bool) string {
 	// the double letter argument are the expected values
 	if s != ss {
 		return fmt.Sprintf("sql requests don't match: %q != %q", s, ss)
@@ -27,14 +26,15 @@ func TestNoArgs(t *testing.T) {
 	var (
 		b   Sibu
 		s   string
-		a   p
+		a   Params
 		err error
 	)
 	b = Sibu{}
 	b.Add("SELECT *")
 	b.Add("FROM table")
 	s, a, err = b.Query()
-	if msg := resultsEqual(s, a, err, "SELECT * FROM table", nil, false); msg != "" {
+	if msg := resultsEqual(s, a, err, "SELECT * FROM table", nil,
+		false); msg != "" {
 		t.Errorf("Unexpected return values [basic]: %s", msg)
 	}
 	b = Sibu{}
@@ -43,21 +43,23 @@ func TestNoArgs(t *testing.T) {
 	b.Add("JOIN other")
 	b.Add("ON other.a = table.b")
 	s, a, err = b.Query()
-	if msg := resultsEqual(s, a, err, "SELECT * FROM table JOIN other ON other.a = table.b", nil, false); msg != "" {
+	if msg := resultsEqual(s, a, err,
+		"SELECT * FROM table JOIN other ON other.a = table.b", nil,
+		false); msg != "" {
 		t.Errorf("Unexpected return values [join]: %s", msg)
 	}
 }
 
-func testFromUserInput(t *testing.T, from string, contains string) *Sibu {
+func fromUserInput(t *testing.T, from string, contains string) *Sibu {
 	b := &Sibu{}
-	b.Add("SELECT p.title, p.content FROM posts p JOIN user u On p.userid=u.id")
+	b.Add("SELECT * FROM a JOIN b b ON a.a=b.b")
 
 	where := OpClause{}
 	if from != "" {
-		where.Add("AND", "user.name={{ p }}", from)
+		where.Add("AND", "a.d={{ p }}", from)
 	}
 	if contains != "" {
-		where.Add("AND", "p.content LIKE {{ p }}", contains)
+		where.Add("AND", "b.c LIKE {{ p }}", contains)
 	}
 	b.Extend("WHERE", &where)
 	return b
@@ -67,31 +69,40 @@ func TestArgs(t *testing.T) {
 	var (
 		b   Sibu
 		s   string
-		a   p
+		a   Params
 		err error
 	)
 	b = Sibu{}
 	b.Add("SELECT * FROM table")
 	b.Add("WHERE userid={{ p }}", 10)
 	s, a, err = b.Query()
-	if msg := resultsEqual(s, a, err, "SELECT * FROM table WHERE userid=$1", p{10}, false); msg != "" {
+	if msg := resultsEqual(s, a, err, "SELECT * FROM table WHERE userid=$1",
+		Params{10}, false); msg != "" {
 		t.Errorf("Unexpected return values [single]: %s", msg)
 	}
 	b = Sibu{}
 	b.Add("SELECT * FROM table")
 	b.Add("WHERE userid={{ p }} AND tags LIKE {{ p }}", 10, "%go%")
 	s, a, err = b.Query()
-	if msg := resultsEqual(s, a, err, "SELECT * FROM table WHERE userid=$1 AND tags LIKE $2", p{10, "%go%"}, false); msg != "" {
+	if msg := resultsEqual(s, a, err,
+		"SELECT * FROM table WHERE userid=$1 AND tags LIKE $2",
+		Params{10, "%go%"}, false); msg != "" {
 		t.Errorf("Unexpected return values [double]: %s", msg)
 	}
-
+	s, a, err = fromUserInput(t, "math2001", "go").Query()
+	if msg := resultsEqual(s, a, err,
+		"SELECT * FROM a JOIN b b ON a.a=b.b WHERE a.d=$1 AND b.c LIKE $2",
+		Params{"math2001", "go"},
+		false); msg != "" {
+		t.Errorf("Unexpected return values [OpClause]: %s", msg)
+	}
 }
 
 func TestBareAdd(t *testing.T) {
 	var (
 		b   Sibu
 		s   string
-		a   p
+		a   Params
 		err error
 	)
 	b = Sibu{}
@@ -107,7 +118,7 @@ func TestErrors(t *testing.T) {
 	var (
 		b   Sibu
 		s   string
-		a   p
+		a   Params
 		err error
 	)
 	b = Sibu{}

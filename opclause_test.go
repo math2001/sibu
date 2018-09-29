@@ -18,7 +18,6 @@ func resultsEquals(req string, args Params, rreq string, aargs Params) string {
 func TestLinear(t *testing.T) {
 	var (
 		o    OpClause
-		b    Sibu
 		req  string
 		args Params
 	)
@@ -27,28 +26,24 @@ func TestLinear(t *testing.T) {
 	o.Add("OR", "u.followingid={{ p }}", 20)
 	req, args = o.GetOpClause()
 	if msg := resultsEquals(req, args, "u.userid={{ p }} OR u.followingid={{ p }}", Params{10, 20}); msg != "" {
-		t.Fatalf("Invalid result: %s", msg)
+		t.Errorf("Invalid result: %s", msg)
 	}
-	b = Sibu{}
-	b.Add("SELECT * FROM table")
-	b.Extend("WHERE", &o)
 }
 
-// func TestGroups(t *testing.T) {
-// 	var (
-// 		w    Where
-// 		b    Sibu
-// 		req  string
-// 		args Params
-// 	)
-// 	w = Where{}
-// 	w.And("a.b={{ p }}", 10)
-// 	w.Open()
-// 	w.Or("c.d={{ p }}", 15)
-// 	w.Or("e.f={{ p }}", 20)
-// 	w.Close()
-// 	req, args = w.GetClause()
-// 	if msg := resultsEquals(req, args, "WHERE a.b=$1 ()"); msg != "" {
-
-// 	}
-// }
+func TestGroups(t *testing.T) {
+	var (
+		o    OpClause
+		req  string
+		args Params
+	)
+	o = OpClause{}
+	o.Add("AND", "a.b={{ p }}", 10)
+	o.Open("AND")
+	o.Add("OR", "c.d={{ p }}", 15)
+	o.Add("OR", "e.f={{ p }}", 20)
+	o.Close()
+	req, args = o.GetOpClause()
+	if msg := resultsEquals(req, args, "a.b={{ p }} AND ( c.d={{ p }} OR e.f={{ p }} )", Params{10, 15, 20}); msg != "" {
+		t.Errorf("Invalid result: %s", msg)
+	}
+}
