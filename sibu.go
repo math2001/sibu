@@ -80,8 +80,8 @@ func (s *Sibu) Query() (string, []interface{}, error) {
 	return b.String(), s.args, nil
 }
 
-// Extend extends the requests and arguments from an OpClauser
-func (s *Sibu) Extend(clause string, m OpClauser) {
+// AddClause extends the requests and arguments from an OpClauser
+func (s *Sibu) AddClause(clause string, m OpClauser) {
 	s.Add(clause)
 	req, args := m.GetOpClause()
 	s.Add(req, args...)

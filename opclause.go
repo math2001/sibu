@@ -43,12 +43,12 @@ func (w *OpClause) Close() {
 }
 
 // GetOpClause returns the formatted clause, ready to be plugged in by Extend
-func (w *OpClause) GetOpClause() (string, Params) {
+func (w OpClause) GetOpClause() (string, Params) {
 	var b strings.Builder
 	// the capacity value is a guess. Most of the time, each condition takes 1
 	// parameter.
-	var args = make(Params, 0, len(*w))
-	for i, cond := range *w {
+	var args = make(Params, 0, len(w))
+	for i, cond := range w {
 		// we add an operator only if there is a condition before (i > 0),
 		if i > 0 {
 			if cond.req != ")" {
@@ -56,7 +56,7 @@ func (w *OpClause) GetOpClause() (string, Params) {
 			}
 			// the previous operator isn't an opening bracket (if it is, it
 			// wouldn't make sense to have ( AND condition ... ) for example )
-			if (*w)[i-1].req != "(" {
+			if w[i-1].req != "(" {
 				b.WriteString(cond.op)
 				b.WriteString(" ")
 			}

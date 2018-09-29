@@ -61,7 +61,7 @@ func fromUserInput(t *testing.T, from string, contains string) *Sibu {
 	if contains != "" {
 		where.Add("AND", "b.c LIKE {{ p }}", contains)
 	}
-	b.Extend("WHERE", &where)
+	b.AddClause("WHERE", where)
 	return b
 }
 
